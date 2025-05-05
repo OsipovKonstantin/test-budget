@@ -4,6 +4,7 @@ import io.restassured.RestAssured
 import mobi.sevenwinds.common.ServerTest
 import mobi.sevenwinds.common.jsonBody
 import mobi.sevenwinds.common.toResponse
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Assert
@@ -79,8 +80,8 @@ class BudgetApiKtTest : ServerTest() {
         RestAssured.given()
             .jsonBody(record)
             .post("/budget/add")
-            .toResponse<BudgetRecord>().let { response ->
-                Assert.assertEquals(record, response)
+            .toResponse<ResponseBudgetRecord>().let { response ->
+                assertThat(response).usingRecursiveComparison().ignoringFields("author").isEqualTo(record)
             }
     }
 }

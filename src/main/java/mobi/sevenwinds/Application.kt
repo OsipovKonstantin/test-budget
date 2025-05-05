@@ -1,8 +1,13 @@
 package mobi.sevenwinds
 
+import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
+import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.papsign.ktor.openapigen.annotations.type.common.ConstraintViolation
 import com.papsign.ktor.openapigen.exceptions.OpenAPIRequiredFieldException
@@ -21,8 +26,11 @@ import mobi.sevenwinds.modules.DatabaseFactory
 import mobi.sevenwinds.modules.initSwagger
 import mobi.sevenwinds.modules.serviceRouting
 import mobi.sevenwinds.modules.swaggerRouting
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.text.SimpleDateFormat
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
@@ -39,6 +47,15 @@ fun Application.module() {
             enable(SerializationFeature.INDENT_OUTPUT)
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             registerModule(Jdk8Module())
+            registerModule(SimpleModule().apply {
+                addSerializer(DateTime::class.java, object : JsonSerializer<DateTime>() {
+                    private val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+                    override fun serialize(value: DateTime?, gen: JsonGenerator, serializers: SerializerProvider) {
+                        gen.writeString(value?.toString(formatter))
+                    }
+                })
+            })
+            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
     }
 
